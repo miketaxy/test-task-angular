@@ -1,0 +1,36 @@
+<div class="container">
+    <h2>Коротка інформація</h2>
+  
+    <div class="row mb-3">
+      <div class="col">
+        <h5>Загальна кількість виданих кредитів: {{ totalLoans() }}</h5>
+        <h5>Середня сума видачі кредитів: {{ averageLoanAmount() | number:'1.0-0' }} </h5>
+        <h5>Загальна сума виданих кредитів: {{ totalLoanAmount() | number:'1.0-0' }}</h5>
+        <h5>Загальна сума нарахованих відсотків: {{ totalInterestAmount() | number:'1.0-0' }}</h5>
+        <h5>Загальна кількість повернених кредитів: {{ returnedLoansCount() }}</h5>
+      </div>
+    </div>
+  
+    <h4>Кредити за місяцями</h4>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Місяць</th>
+          <th>Кількість виданих кредитів</th>
+          <th>Сума виданих кредитів</th>
+          <th>Сума нарахованих відсотків</th>
+          <th>Кількість повернених кредитів</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let month of (monthlyData() | keyvalue)">
+          <td>{{ month.key }}</td>
+          <td>{{ month.value.count }}</td>
+          <td>{{ month.value.totalBody | number:'1.0-0' }}</td>
+          <td>{{ month.value.totalPercent | number:'1.0-0' }}</td>
+          <td>{{ month.value.returnedCount }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
