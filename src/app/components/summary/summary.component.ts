@@ -1,30 +1,75 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { DataService } from '../data.service';
+import { DataService } from '../../services/data.service';
 import { WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Loan } from '../loan.model';
+import { Loan } from '../../models/loan.model';
 
+/**
+ * Component responsible for displaying a summary of loan data.
+ * 
+ * @component
+ * @selector app-summary
+ * @templateUrl ./summary.component.html
+ * @styleUrls ./summary.component.css
+ * @standalone true
+ * @imports CommonModule
+ * @providers DataService
+ */
 @Component({
   selector: 'app-summary',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.css'],
-  standalone: true,
-  imports: [ CommonModule ],
   providers: [DataService]
-  
 })
-export class SummaryComponent
- implements OnInit {
+export class SummaryComponent implements OnInit {
+  /**
+   * Signal holding the list of loans.
+   */
   loans: WritableSignal<Loan[]> = signal([]);
+
+  /**
+   * Signal holding the total number of loans.
+   */
   totalLoans: WritableSignal<number> = signal(0);
+
+  /**
+   * Signal holding the average loan amount.
+   */
   averageLoanAmount: WritableSignal<number> = signal(0);
+
+  /**
+   * Signal holding the total loan amount.
+   */
   totalLoanAmount: WritableSignal<number> = signal(0);
+
+  /**
+   * Signal holding the total interest amount.
+   */
   totalInterestAmount: WritableSignal<number> = signal(0);
+
+  /**
+   * Signal holding the count of returned loans.
+   */
   returnedLoansCount: WritableSignal<number> = signal(0);
+
+  /**
+   * Signal holding the monthly data of loans.
+   */
   monthlyData: WritableSignal<{ [key: string]: { count: number; totalBody: number; totalPercent: number; returnedCount: number } }> = signal({});
 
+  /**
+   * Constructor for SummaryComponent.
+   * 
+   * @param dataService - Service for fetching loan data.
+   */
   constructor(private dataService: DataService) {}
 
+  /**
+   * Lifecycle hook that is called after data-bound properties of a directive are initialized.
+   * Fetches loan data and calculates metrics.
+   */
   ngOnInit(): void {
     this.dataService.getData().subscribe((data: Loan[]) => {
       this.loans.set(data);
@@ -32,6 +77,9 @@ export class SummaryComponent
     });
   }
 
+  /**
+   * Calculates various metrics based on the loan data.
+   */
   calculateMetrics(): void {
     const loans = this.loans();
     this.totalLoans.set(loans.length);
@@ -43,6 +91,12 @@ export class SummaryComponent
     this.monthlyData.set(this.groupLoansByMonth(loans));
   }
 
+  /**
+   * Groups loans by their issuance month.
+   * 
+   * @param loans - Array of loans to be grouped.
+   * @returns An object where keys are months and values are loan statistics for that month.
+   */
   groupLoansByMonth(loans: Loan[]): { [key: string]: { count: number; totalBody: number; totalPercent: number; returnedCount: number } } {
     return loans.reduce((acc, loan) => {
       const month = loan.issuance_date.substring(0, 7); 
@@ -59,3 +113,4 @@ export class SummaryComponent
     }, {} as { [key: string]: { count: number; totalBody: number; totalPercent: number; returnedCount: number } });
   }
 }
+

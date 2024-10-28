@@ -1,0 +1,26 @@
+[
+    {
+        "user": "pageantrylamentable",
+        "issuance_date": "2020-01-11",
+        "return_date": "2020-01-25",
+        "actual_return_date": "2021-04-23",
+        "body": 4500,
+        "percent": 32535.0
+    },
+    {
+        "user": "ninnybudweiser",
+        "issuance_date": "2020-01-12",
+        "return_date": "2020-01-26",
+        "actual_return_date": "2020-08-30",
+        "body": 4500,
+        "percent": 16537.5
+    },
+    {
+        "user": "shoelanguid",
+        "issuance_date": "2020-01-20",
+        "return_date": "2020-02-03",
+        "actual_return_date": "2020-11-23",
+        "body": 1500,
+        "percent": 7245.0
+    }
+]

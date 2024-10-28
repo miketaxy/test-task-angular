@@ -23,6 +23,7 @@
         <tr>
           <th>Дата видачі</th>
           <th>Дата повернення</th>
+          <th>Дата фактичного повернення</th>
           <th>Сума кредиту</th>
           <th>Сума відсотків</th>
           <th>Користувач</th>
@@ -31,6 +32,7 @@
       <tbody>
         <tr *ngFor="let loan of filteredLoans()">
           <td>{{ loan.issuance_date }}</td>
+          <td>{{ loan.return_date }}</td>
           <td>{{ loan.actual_return_date }}</td>
           <td>{{ loan.body }}</td>
           <td>{{ loan.percent }}</td>
