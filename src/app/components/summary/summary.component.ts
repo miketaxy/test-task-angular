@@ -1,8 +1,10 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { DataService } from '../../services/data.service';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { DataService } from '../../services/data-service/data.service';
 import { WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Loan } from '../../models/loan.model';
+import { Subscription } from 'rxjs';
+import { LoanSummary } from '../../models/loan-summary.model';
 
 /**
  * Component responsible for displaying a summary of loan data.
@@ -23,7 +25,7 @@ import { Loan } from '../../models/loan.model';
   styleUrls: ['./summary.component.css'],
   providers: [DataService]
 })
-export class SummaryComponent implements OnInit {
+export class SummaryComponent implements OnInit, OnDestroy {
   /**
    * Signal holding the list of loans.
    */
@@ -57,24 +59,29 @@ export class SummaryComponent implements OnInit {
   /**
    * Signal holding the monthly data of loans.
    */
-  monthlyData: WritableSignal<{ [key: string]: { count: number; totalBody: number; totalPercent: number; returnedCount: number } }> = signal({});
+  monthlyData: WritableSignal<{ [key: string]: LoanSummary }> = signal({});
 
+  private subscriptions = new Subscription();
   /**
    * Constructor for SummaryComponent.
    * 
    * @param dataService - Service for fetching loan data.
    */
   constructor(private dataService: DataService) {}
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
 
   /**
    * Lifecycle hook that is called after data-bound properties of a directive are initialized.
    * Fetches loan data and calculates metrics.
    */
   ngOnInit(): void {
-    this.dataService.getData().subscribe((data: Loan[]) => {
+    const subscription = this.dataService.getData().subscribe((data: Loan[]) => {
       this.loans.set(data);
       this.calculateMetrics();
     });
+    this.subscriptions.add(subscription);
   }
 
   /**
@@ -83,9 +90,9 @@ export class SummaryComponent implements OnInit {
   calculateMetrics(): void {
     const loans = this.loans();
     this.totalLoans.set(loans.length);
-    this.totalLoanAmount.set(loans.reduce((acc: any, loan: { body: any; }) => acc + loan.body, 0));
-    this.totalInterestAmount.set(loans.reduce((acc: any, loan: { percent: any; }) => acc + loan.percent, 0));
-    this.returnedLoansCount.set(loans.filter((loan: { actual_return_date: any; }) => loan.actual_return_date).length);
+    this.totalLoanAmount.set(loans.reduce((acc: number, loan: { body: number; }) => acc + loan.body, 0));
+    this.totalInterestAmount.set(loans.reduce((acc: number, loan: { percent: number; }) => acc + loan.percent, 0));
+    this.returnedLoansCount.set(loans.filter((loan: { actual_return_date: string; }) => loan.actual_return_date).length);
     this.averageLoanAmount.set(this.totalLoanAmount() / this.totalLoans() || 0);
 
     this.monthlyData.set(this.groupLoansByMonth(loans));

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Loan } from '../../models/loan.model';
 
 // Marks this class as available to be provided and injected as a dependency in the root injector
 @Injectable({
@@ -16,12 +17,8 @@ export class DataService {
   constructor(private http: HttpClient) { }
 
   // Method to fetch data from the API
-  getData(): Observable<any> {
-    return this.http.get<any>(this.apiUrl);
-  }
 
-  // Method to fetch paginated data from the API
-  getDataLazy(page: number, pageSize: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}?_page=${page}&_limit=${pageSize}`);
+  getData(): Observable<Loan[]> {
+    return this.http.get<Loan[]>(this.apiUrl);
   }
 }

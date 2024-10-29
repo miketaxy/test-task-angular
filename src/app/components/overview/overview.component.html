@@ -1,43 +1,66 @@
 <div class="container">
-    <h2>Загальна таблиця</h2>
-  
-    <div class="row mb-3">
-      <div class="col">
-        <label for="startDate">Початкова дата</label>
-        <input type="date" id="startDate" (change)="onStartDateChange($event)" class="form-control">
-      </div>
-      <div class="col">
-        <label for="endDate">Кінцева дата</label>
-        <input type="date" id="endDate" (change)="onEndDateChange($event)" class="form-control">
-      </div>
-      <div class="col">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" (change)="onShowOverdueChange($event)" id="showOverdue">
-          <label class="form-check-label" for="showOverdue">Показати прострочені кредити</label>
-        </div>
+  <h2>Загальна таблиця</h2>
+
+  <div class="row mb-3">
+    <div class="col">
+      <label for="startDate">Початкова дата видачі</label>
+      <input type="date" id="startDate" (change)="onStartDateChange($event)" class="form-control">
+    </div>
+    <div class="col">
+      <label for="endDate">Кінцева дата видачі</label>
+      <input type="date" id="endDate" (change)="onEndDateChange($event)" class="form-control">
+    </div>
+    <div class="col">
+      <label for="actualReturnStartDate">Початкова дата повернення</label>
+      <input type="date" id="actualReturnStartDate" (change)="onActualReturnStartDateChange($event)" class="form-control">
+    </div>
+    <div class="col">
+      <label for="actualReturnEndDate">Кінцева дата повернення</label>
+      <input type="date" id="actualReturnEndDate" (change)="onActualReturnEndDateChange($event)" class="form-control">
+    </div>
+    <div class="col">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" (change)="onShowOverdueChange($event)" id="showOverdue">
+        <label class="form-check-label" for="showOverdue">Показати прострочені кредити</label>
       </div>
     </div>
-  
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Дата видачі</th>
-          <th>Дата повернення</th>
-          <th>Дата фактичного повернення</th>
-          <th>Сума кредиту</th>
-          <th>Сума відсотків</th>
-          <th>Користувач</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let loan of filteredLoans()">
-          <td>{{ loan.issuance_date }}</td>
-          <td>{{ loan.return_date }}</td>
-          <td>{{ loan.actual_return_date }}</td>
-          <td>{{ loan.body }}</td>
-          <td>{{ loan.percent }}</td>
-          <td>{{ loan.user }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="form-check">
+      <label class="form-check-label" for="pageSize">Кількість записів на сторінці </label>
+      <input type="number" class="form-input mx-2 my-2" id="pageSize" [(ngModel)]="pageSize">
+      <button class="btn btn-light" (click)="setPageSize()">Прийняти</button>
+    </div>
   </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Дата видачі</th>
+        <th>Дата повернення</th>
+        <th>Дата фактичного повернення</th>
+        <th>Сума кредиту</th>
+        <th>Сума відсотків</th>
+        <th>Користувач</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let loan of filteredLoans()">
+        <td>{{ loan.issuance_date | date: 'dd.MM.yyyy' }}</td>
+        <td>{{ loan.return_date | date: 'dd.MM.yyyy' }}</td>
+        <td>{{ loan.actual_return_date | date: 'dd.MM.yyyy' }}</td>
+        <td>{{ loan.body | number: '1.2-2' }}</td>
+        <td>{{ loan.percent | number: '1.2-2' }}</td>
+        <td>{{ loan.user }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <button class="btn btn-light" (click)="previousPage()" [disabled]="page === 1">Минула сторінка</button>
+    <ng-container *ngFor="let p of pagesArray">
+      <button class="btn" [class.btn-primary]="page === p" [class.btn-light]="page !== p" (click)="goToPage(p)">
+        {{ p }}
+      </button>
+    </ng-container>
+    <button class="btn btn-light" (click)="nextPage()" [disabled]="page === pagesArray.length">Наступна сторінка</button>
+  </div>
+</div>

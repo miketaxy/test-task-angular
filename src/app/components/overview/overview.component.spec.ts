@@ -1,7 +1,6 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { OverviewComponent } from './overview.component';
-import { DataService } from '../../services/data.service';
-import { of } from 'rxjs';
+import { DataService } from '../../services/data-service/data.service';
 import { Loan } from '../../models/loan.model';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 describe('OverviewComponent', () => {
@@ -64,5 +63,60 @@ describe('OverviewComponent', () => {
         component.endDate.set(new Date('2020-01-25'));
         component.applyFilters();
         expect(component.filteredLoans()).toEqual(mockLoans.slice(1, 3));
+    });
+
+    it('should paginate loans correctly', () => {
+        component.loans.set(mockLoans);
+        component.pageSize = 1;
+        component.applyFilters();
+
+        component.goToPage(1);
+        expect(component.filteredLoans()).toEqual([mockLoans[0]]);
+
+        component.goToPage(2);
+        expect(component.filteredLoans()).toEqual([mockLoans[1]]);
+
+        component.goToPage(3);
+        expect(component.filteredLoans()).toEqual([mockLoans[2]]);
+    });
+
+    it('should go to the next page', () => {
+        component.loans.set(mockLoans);
+        component.pageSize = 1;
+        component.applyFilters();
+
+        component.goToPage(1);
+        expect(component.filteredLoans()).toEqual([mockLoans[0]]);
+
+        component.nextPage();
+        expect(component.filteredLoans()).toEqual([mockLoans[1]]);
+    });
+
+    it('should go to the previous page', () => {
+        component.loans.set(mockLoans);
+        component.pageSize = 1;
+        component.applyFilters();
+
+        component.goToPage(2);
+        expect(component.filteredLoans()).toEqual([mockLoans[1]]);
+
+       
+        component.previousPage();
+        expect(component.filteredLoans()).toEqual([mockLoans[0]]);
+    });
+
+    it('should set page size and reset to first page', () => {
+        component.loans.set(mockLoans);
+        component.pageSize = 2;
+        component.applyFilters();
+
+      
+        component.goToPage(1);
+        expect(component.filteredLoans()).toEqual(mockLoans.slice(0, 2));
+
+     
+        component.pageSize = 1;
+        component.setPageSize();
+        expect(component.filteredLoans()).toEqual([mockLoans[0]]);
     });
 });

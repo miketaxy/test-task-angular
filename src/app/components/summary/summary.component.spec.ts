@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { SummaryComponent } from './summary.component';
 import { Loan } from '../../models/loan.model';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { DataService } from '../../services/data.service';
+import { DataService } from '../../services/data-service/data.service';
 
 describe('SummaryComponent', () => {
   let component: SummaryComponent;
