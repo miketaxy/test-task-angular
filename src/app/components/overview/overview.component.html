@@ -26,7 +26,7 @@
     </div>
     <div class="form-check">
       <label class="form-check-label" for="pageSize">Кількість записів на сторінці </label>
-      <input type="number" class="form-input mx-2 my-2" id="pageSize" [(ngModel)]="pageSize">
+      <input type="number" class="form-input mx-2 my-2" id="pageSize" [(ngModel)]="paginationService.pageSize">
       <button class="btn btn-light" (click)="setPageSize()">Прийняти</button>
     </div>
   </div>
@@ -53,14 +53,8 @@
       </tr>
     </tbody>
   </table>
-
-  <div class="pagination">
-    <button class="btn btn-light" (click)="previousPage()" [disabled]="page === 1">Минула сторінка</button>
-    <ng-container *ngFor="let p of pagesArray">
-      <button class="btn" [class.btn-primary]="page === p" [class.btn-light]="page !== p" (click)="goToPage(p)">
-        {{ p }}
-      </button>
-    </ng-container>
-    <button class="btn btn-light" (click)="nextPage()" [disabled]="page === pagesArray.length">Наступна сторінка</button>
-  </div>
+<ngb-pagination [collectionSize]="paginationService.filteredLoansSize" 
+[(page)]="paginationService.page" [maxSize]="5" 
+[pageSize]="paginationService.pageSize" [rotate]="true" 
+(pageChange)="applyFilters()" [boundaryLinks]="true"></ngb-pagination>
 </div>

@@ -87,6 +87,9 @@ export class SummaryComponent implements OnInit, OnDestroy {
   /**
    * Calculates various metrics based on the loan data.
    */
+  /*
+  * I don't see any reason to make service for those methods. They are not reusable and they are not used in other components.
+  */
   calculateMetrics(): void {
     const loans = this.loans();
     this.totalLoans.set(loans.length);
@@ -96,7 +99,7 @@ export class SummaryComponent implements OnInit, OnDestroy {
     this.averageLoanAmount.set(this.totalLoanAmount() / this.totalLoans() || 0);
 
     this.monthlyData.set(this.groupLoansByMonth(loans));
-  }
+  }  
 
   /**
    * Groups loans by their issuance month.
@@ -104,6 +107,9 @@ export class SummaryComponent implements OnInit, OnDestroy {
    * @param loans - Array of loans to be grouped.
    * @returns An object where keys are months and values are loan statistics for that month.
    */
+  /*
+  * I don't see any reason to make service for those methods. They are not reusable and they are not used in other components.
+  */
   groupLoansByMonth(loans: Loan[]): { [key: string]: { count: number; totalBody: number; totalPercent: number; returnedCount: number } } {
     return loans.reduce((acc, loan) => {
       const month = loan.issuance_date.substring(0, 7); 

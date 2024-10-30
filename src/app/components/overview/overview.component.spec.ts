@@ -3,9 +3,18 @@ import { OverviewComponent } from './overview.component';
 import { DataService } from '../../services/data-service/data.service';
 import { Loan } from '../../models/loan.model';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of } from 'rxjs';
+import { LoanFilterService } from '../../services/overview-service/filter-service/filter.service';
+import { PaginationService } from '../../services/overview-service/pagination-service/pagination.service';
+import { DateChangeService } from '../../services/overview-service/date-change-service/date-change.service';
 describe('OverviewComponent', () => {
     let component: OverviewComponent;
     let fixture: ComponentFixture<OverviewComponent>;
+    let dataService: DataService;
+    let loanFilterService: LoanFilterService;
+    let paginationService: PaginationService;
+    let dateChangeService: DateChangeService;
+
     const mockLoans: Loan[] = [
         {
             "user": "pageantrylamentable",
@@ -32,91 +41,115 @@ describe('OverviewComponent', () => {
             "percent": 7245.0
         }
     ];
+
     beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [OverviewComponent, HttpClientTestingModule],
-            providers: [DataService]
+            providers: [
+                DataService,
+                LoanFilterService,
+                PaginationService,
+                DateChangeService
+            ]
         }).compileComponents();
 
         fixture = TestBed.createComponent(OverviewComponent);
         component = fixture.componentInstance;
+        dataService = TestBed.inject(DataService);
+        loanFilterService = TestBed.inject(LoanFilterService);
+        paginationService = TestBed.inject(PaginationService);
+        dateChangeService = TestBed.inject(DateChangeService);
+
+        spyOn(dataService, 'getData').and.returnValue(of(mockLoans));
+        spyOn(loanFilterService, 'filterLoans').and.returnValue({ filtered: mockLoans, filteredLoansSize: mockLoans.length });
         fixture.detectChanges();
     });
+
     it('should create the component', () => {
         expect(component).toBeTruthy();
     });
-    it('should filter loans by start date', () => {
-        component.loans.set(mockLoans);
-        component.startDate.set(new Date('2020-01-12'));
-        component.applyFilters();
-        expect(component.filteredLoans()).toEqual(mockLoans.slice(1));
-    });
-    it('should filter loans by end date', () => {
-        component.loans.set(mockLoans);
-        component.endDate.set(new Date('2020-01-25'));
-        component.applyFilters();
-        expect(component.filteredLoans()).toEqual(mockLoans.slice(0, 3));
-    });
-    it('should filter loans by start and end date', () => {
-        component.loans.set(mockLoans);
-        component.startDate.set(new Date('2020-01-12'));
-        component.endDate.set(new Date('2020-01-25'));
-        component.applyFilters();
-        expect(component.filteredLoans()).toEqual(mockLoans.slice(1, 3));
+
+    it('should unsubscribe on ngOnDestroy', () => {
+        spyOn(component['subscriptions'], 'unsubscribe');
+        component.ngOnDestroy();
+        expect(component['subscriptions'].unsubscribe).toHaveBeenCalled();
     });
 
-    it('should paginate loans correctly', () => {
-        component.loans.set(mockLoans);
-        component.pageSize = 1;
-        component.applyFilters();
-
-        component.goToPage(1);
-        expect(component.filteredLoans()).toEqual([mockLoans[0]]);
-
-        component.goToPage(2);
-        expect(component.filteredLoans()).toEqual([mockLoans[1]]);
-
-        component.goToPage(3);
-        expect(component.filteredLoans()).toEqual([mockLoans[2]]);
+    it('should call applyFilters on start date change', () => {
+        spyOn(component, 'applyFilters');
+        spyOn(dateChangeService, 'onStartDateChange');
+        const event = new Event('change');
+        component.onStartDateChange(event);
+        expect(dateChangeService.onStartDateChange).toHaveBeenCalledWith(event);
+        expect(component.applyFilters).toHaveBeenCalled();
     });
 
-    it('should go to the next page', () => {
-        component.loans.set(mockLoans);
-        component.pageSize = 1;
-        component.applyFilters();
+    it('should call applyFilters on end date change', () => {
+        spyOn(component, 'applyFilters');
+        spyOn(dateChangeService, 'onEndDateChange');
+        const event = new Event('change');
+        component.onEndDateChange(event);
+        expect(dateChangeService.onEndDateChange).toHaveBeenCalledWith(event);
+        expect(component.applyFilters).toHaveBeenCalled();
+    });
 
-        component.goToPage(1);
-        expect(component.filteredLoans()).toEqual([mockLoans[0]]);
+    it('should call applyFilters on actual return start date change', () => {
+        spyOn(component, 'applyFilters');
+        spyOn(dateChangeService, 'onActualReturnStartDateChange');
+        const event = new Event('change');
+        component.onActualReturnStartDateChange(event);
+        expect(dateChangeService.onActualReturnStartDateChange).toHaveBeenCalledWith(event);
+        expect(component.applyFilters).toHaveBeenCalled();
+    });
 
+    it('should call applyFilters on actual return end date change', () => {
+        spyOn(component, 'applyFilters');
+        spyOn(dateChangeService, 'onActualReturnEndDateChange');
+        const event = new Event('change');
+        component.onActualReturnEndDateChange(event);
+        expect(dateChangeService.onActualReturnEndDateChange).toHaveBeenCalledWith(event);
+        expect(component.applyFilters).toHaveBeenCalled();
+    });
+
+    it('should call applyFilters on show overdue change', () => {
+        spyOn(component, 'applyFilters');
+        spyOn(dateChangeService, 'onShowOverdueChange');
+        const event = new Event('change');
+        component.onShowOverdueChange(event);
+        expect(dateChangeService.onShowOverdueChange).toHaveBeenCalledWith(event);
+        expect(component.applyFilters).toHaveBeenCalled();
+    });
+
+    it('should call applyFilters on next page', () => {
+        spyOn(component, 'applyFilters');
+        spyOn(paginationService, 'nextPage');
         component.nextPage();
-        expect(component.filteredLoans()).toEqual([mockLoans[1]]);
+        expect(paginationService.nextPage).toHaveBeenCalled();
+        expect(component.applyFilters).toHaveBeenCalled();
     });
 
-    it('should go to the previous page', () => {
-        component.loans.set(mockLoans);
-        component.pageSize = 1;
-        component.applyFilters();
-
-        component.goToPage(2);
-        expect(component.filteredLoans()).toEqual([mockLoans[1]]);
-
-       
+    it('should call applyFilters on previous page', () => {
+        spyOn(component, 'applyFilters');
+        spyOn(paginationService, 'previousPage');
         component.previousPage();
-        expect(component.filteredLoans()).toEqual([mockLoans[0]]);
+        expect(paginationService.previousPage).toHaveBeenCalled();
+        expect(component.applyFilters).toHaveBeenCalled();
     });
 
-    it('should set page size and reset to first page', () => {
-        component.loans.set(mockLoans);
-        component.pageSize = 2;
-        component.applyFilters();
+    it('should call applyFilters on go to page', () => {
+        spyOn(component, 'applyFilters');
+        spyOn(paginationService, 'goToPage');
+        const page = 2;
+        component.goToPage(page);
+        expect(paginationService.goToPage).toHaveBeenCalledWith(page);
+        expect(component.applyFilters).toHaveBeenCalled();
+    });
 
-      
-        component.goToPage(1);
-        expect(component.filteredLoans()).toEqual(mockLoans.slice(0, 2));
-
-     
-        component.pageSize = 1;
+    it('should call applyFilters on set page size', () => {
+        spyOn(component, 'applyFilters');
+        spyOn(paginationService, 'setPageSize');
         component.setPageSize();
-        expect(component.filteredLoans()).toEqual([mockLoans[0]]);
+        expect(paginationService.setPageSize).toHaveBeenCalled();
+        expect(component.applyFilters).toHaveBeenCalled();
     });
 });

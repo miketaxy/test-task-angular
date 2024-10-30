@@ -1,10 +1,13 @@
-import { Component, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { DataService } from '../../services/data-service/data.service';
 import { CommonModule } from '@angular/common';
 import { Loan } from '../../models/loan.model';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { LoanFilterService } from '../../services/overview-service/filter.service';
+import { LoanFilterService } from '../../services/overview-service/filter-service/filter.service';
+import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { PaginationService } from '../../services/overview-service/pagination-service/pagination.service';
+import { DateChangeService } from '../../services/overview-service/date-change-service/date-change.service';
 
 /**
  * OverviewComponent is responsible for displaying and filtering a list of loans.
@@ -40,7 +43,7 @@ import { LoanFilterService } from '../../services/overview-service/filter.servic
 @Component({
   selector: 'app-overview',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgbPaginationModule],
   templateUrl: './overview.component.html',
   styleUrls: ['./overview.component.css'],
   providers: [DataService]
@@ -48,17 +51,15 @@ import { LoanFilterService } from '../../services/overview-service/filter.servic
 export class OverviewComponent implements OnInit, OnDestroy {
   loans: WritableSignal<Loan[]> = signal([]);
   filteredLoans: WritableSignal<Loan[]> = signal([]);
-  startDate: WritableSignal<Date | null> = signal(null);
-  endDate: WritableSignal<Date | null> = signal(null);
-  actualReturnStartDate: WritableSignal<Date | null> = signal(null);
-  actualReturnEndDate: WritableSignal<Date | null> = signal(null);
-  showOverdueOnly: WritableSignal<boolean> = signal(false);
-  page: number = 1;
-  pageSize: number = 50;
-  pagesArray: number[] = [];
+
+
   private subscriptions = new Subscription();
 
-  constructor(private dataService: DataService, private loanFilterService: LoanFilterService) { }
+  constructor(private dataService: DataService
+    , private loanFilterService: LoanFilterService
+    , public paginationService: PaginationService // public to be able to access it from the template
+    , private dateChangeService: DateChangeService
+  ) { }
 
   ngOnInit(): void {
     const subscription = this.dataService.getData().subscribe((data: Loan[]) => {
@@ -73,67 +74,57 @@ export class OverviewComponent implements OnInit, OnDestroy {
   }
 
   onStartDateChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.startDate.set(input.value ? new Date(input.value) : null);
+    this.dateChangeService.onStartDateChange(event);
     this.applyFilters();
   }
 
   onEndDateChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.endDate.set(input.value ? new Date(input.value) : null);
+    this.dateChangeService.onEndDateChange(event);
     this.applyFilters();
   }
 
   onActualReturnStartDateChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.actualReturnStartDate.set(input.value ? new Date(input.value) : null);
+    this.dateChangeService.onActualReturnStartDateChange(event);
     this.applyFilters();
   }
 
   onActualReturnEndDateChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.actualReturnEndDate.set(input.value ? new Date(input.value) : null);
+    this.dateChangeService.onActualReturnEndDateChange(event);
     this.applyFilters();
   }
 
   onShowOverdueChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.showOverdueOnly.set(input.checked);
+    this.dateChangeService.onShowOverdueChange(event);
     this.applyFilters();
   }
-
+  
   applyFilters(): void {
     const loans = this.loans();
-    const filtered = this.loanFilterService.filterLoans(loans, {
-      startDate: this.startDate(),
-      endDate: this.endDate(),
-      actualReturnStartDate: this.actualReturnStartDate(),
-      actualReturnEndDate: this.actualReturnEndDate(),
-      showOverdueOnly: this.showOverdueOnly(),
-      page: this.page,
-      pageSize: this.pageSize
+    const {filtered, filteredLoansSize} = this.loanFilterService.filterLoans(loans, {
+      page: this.paginationService.getPagination(),
+      dateFilters: this.dateChangeService.getDate()
     });
-    this.pagesArray = Array.from({ length: Math.ceil(this.loans().length / this.pageSize) }, (_, i) => i + 1);
+    this.paginationService.filteredLoansSize = filteredLoansSize;
     this.filteredLoans.set(filtered);
   }
 
   nextPage(): void {
-    this.page++;
+    this.paginationService.nextPage();
     this.applyFilters();
   }
 
   previousPage(): void {
-    this.page--;
+    this.paginationService.previousPage();
     this.applyFilters();
   }
 
   goToPage(page: number): void {
-    this.page = page;
+    this.paginationService.goToPage(page);
     this.applyFilters();
   }
 
   setPageSize(): void {
-    this.page = 1;
+    this.paginationService.setPageSize();
     this.applyFilters();
   }
 }
